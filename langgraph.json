@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "lumina_agent": "./lumina_agent.py:lumina_agent"
+  },
+  "env": ".env"
+}
