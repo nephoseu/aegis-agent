@@ -107,3 +107,17 @@ dmypy.json
 
 # LangGraph API
 .langgraph_api
+client/src/langgraph.js
+
+# Node
+node_modules/
+client/node_modules/
+
+# Google credentials
+*.json
+!agent/langgraph.json
+!client/package.json
+!package.json
+
+agent/.langgraph_api
+

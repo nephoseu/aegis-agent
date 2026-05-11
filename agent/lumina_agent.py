@@ -1,6 +1,7 @@
 import os
 from typing import Annotated
 from typing_extensions import TypedDict
+import google.auth
 
 # LangChain / Vertex AI Imports
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -20,12 +21,20 @@ load_dotenv()
 PROJECT_ID = os.getenv("PROJECT_ID")
 REGION = "us-central1"
 
+creds, detected_project = google.auth.default(
+    scopes=["https://www.googleapis.com/auth/cloud-platform"]
+)
+
+PROJECT_ID = PROJECT_ID or detected_project
+
 # Initialize the Gemini Model
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-pro",
+    vertexai=True,              # force Vertex backend
     project=PROJECT_ID,
     location=REGION,
-    temperature=1.0
+    credentials=creds,          # use ADC from gcloud auth application-default login
+    temperature=1.0,
 )
 
 # ======================================================================

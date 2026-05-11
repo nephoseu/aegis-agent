@@ -4,7 +4,7 @@
  */
 
 const BASE = '/api';
-const GRAPH_ID = 'agent';
+const GRAPH_ID = 'lumina_agent';
 
 export async function createThread() {
   const res = await fetch(`${BASE}/threads`, {
