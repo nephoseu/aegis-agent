@@ -23,12 +23,6 @@ const SpinnerIcon = () => (
     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
   </svg>
 );
-const PlusIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-  </svg>
-);
-
 const Cursor = () => (
   <span style={{
     display: 'inline-block', width: 2, height: '1em',
@@ -73,24 +67,6 @@ function Message({ msg }) {
   );
 }
 
-function ThreadItem({ thread, active, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      width: '100%', padding: '8px 12px', borderRadius: 8, border: 'none',
-      background: active ? 'var(--accent-glow)' : 'transparent',
-      borderLeft: `2px solid ${active ? 'var(--accent)' : 'transparent'}`,
-      color: active ? 'var(--accent-2)' : 'var(--text-dim)',
-      fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 600,
-      textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s', letterSpacing: '0.03em',
-    }}>
-      {thread.label}
-      <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 400, opacity: 0.5, marginTop: 2 }}>
-        {thread.id.slice(0, 8)}…
-      </span>
-    </button>
-  );
-}
-
 function StatusBadge({ status }) {
   const colors = {
     idle:       { dot: 'var(--agent)',    text: 'var(--text-dimmer)' },
@@ -115,7 +91,6 @@ function StatusBadge({ status }) {
 }
 
 export default function App() {
-  const [threads, setThreads] = useState([]);
   const [activeThread, setActiveThread] = useState(null);
   const [messages, setMessages] = useState({});
   const [input, setInput] = useState('');
@@ -150,21 +125,6 @@ export default function App() {
     });
   }, []);
 
-  const newThread = useCallback(async () => {
-    setStatus('connecting');
-    try {
-      const id = await createThread();
-      const label = `Thread ${threads.length + 1}`;
-      setThreads(prev => [...prev, { id, label }]);
-      setActiveThread(id);
-      setMessages(prev => ({ ...prev, [id]: [] }));
-      setStatus('idle');
-    } catch (e) {
-      setStatus('error');
-      setTimeout(() => setStatus('idle'), 3000);
-    }
-  }, [threads.length]);
-
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || status === 'streaming' || status === 'connecting') return;
@@ -174,8 +134,6 @@ export default function App() {
       setStatus('connecting');
       try {
         const id = await createThread();
-        const label = 'Thread 1';
-        setThreads([{ id, label }]);
         setActiveThread(id);
         setMessages({ [id]: [] });
         threadId = id;
@@ -224,55 +182,12 @@ export default function App() {
         .spinner { animation: spin 0.8s linear infinite; display:flex; }
         .send-btn:hover:not(:disabled) { background: var(--accent-2) !important; transform: scale(1.05); }
         .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
-        .new-btn:hover { background: var(--accent-glow) !important; color: var(--accent-2) !important; }
         textarea { resize:none; }
         textarea:focus { outline:none; }
         .input-wrap:focus-within { border-color: var(--border-active) !important; box-shadow: 0 0 0 3px var(--accent-glow) !important; }
       `}</style>
 
       <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
-
-        {/* Sidebar */}
-        <aside style={{
-          width:220, flexShrink:0, background:'var(--bg-2)',
-          borderRight:'1px solid var(--border)', display:'flex', flexDirection:'column',
-        }}>
-          <div style={{ padding:'20px 16px 16px', borderBottom:'1px solid var(--border)' }}>
-            <div style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.02em' }}>◈ AgentChat</div>
-            <div style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--text-dimmer)', marginTop:3 }}>
-              langgraph://localhost:2024
-            </div>
-          </div>
-
-          <div style={{ padding:'12px 10px 8px' }}>
-            <button className="new-btn" onClick={newThread} style={{
-              width:'100%', padding:'7px 10px', display:'flex', alignItems:'center', gap:7,
-              background:'transparent', border:'1px dashed var(--border)', borderRadius:8,
-              color:'var(--text-dimmer)', cursor:'pointer', fontFamily:'var(--font-ui)',
-              fontSize:12, fontWeight:600, transition:'all 0.15s', letterSpacing:'0.03em',
-            }}>
-              <PlusIcon /> New Thread
-            </button>
-          </div>
-
-          <div style={{ flex:1, overflowY:'auto', padding:'0 10px 12px' }}>
-            {threads.length === 0 ? (
-              <div style={{ padding:'16px 8px', fontFamily:'var(--font-mono)', fontSize:11, color:'var(--text-dimmer)', lineHeight:1.6 }}>
-                No threads yet.<br/>Hit + or start typing.
-              </div>
-            ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
-                {threads.map(t => (
-                  <ThreadItem key={t.id} thread={t} active={t.id === activeThread} onClick={() => setActiveThread(t.id)} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div style={{ padding:'12px 16px', borderTop:'1px solid var(--border)' }}>
-            <StatusBadge status={status} />
-          </div>
-        </aside>
 
         {/* Main */}
         <main style={{
@@ -286,21 +201,15 @@ export default function App() {
             padding:'14px 24px', borderBottom:'1px solid var(--border)',
             display:'flex', alignItems:'center', justifyContent:'space-between',
           }}>
-            <div>
-              <div style={{ fontWeight:700, fontSize:14, letterSpacing:'-0.01em' }}>
-                {activeThread ? (threads.find(t=>t.id===activeThread)?.label ?? 'Thread') : 'Select or create a thread'}
+            <div style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.02em' }}>◈ AgentChat</div>
+            <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+              <StatusBadge status={status} />
+              <div style={{
+                fontFamily:'var(--font-mono)', fontSize:11, color:'var(--text-dimmer)',
+                background:'var(--bg-3)', padding:'4px 10px', borderRadius:20, border:'1px solid var(--border)',
+              }}>
+                graph: agent
               </div>
-              {activeThread && (
-                <div style={{ fontFamily:'var(--font-mono)', fontSize:10, color:'var(--text-dimmer)', marginTop:1 }}>
-                  {activeThread}
-                </div>
-              )}
-            </div>
-            <div style={{
-              fontFamily:'var(--font-mono)', fontSize:11, color:'var(--text-dimmer)',
-              background:'var(--bg-3)', padding:'4px 10px', borderRadius:20, border:'1px solid var(--border)',
-            }}>
-              graph: agent
             </div>
           </header>
 
