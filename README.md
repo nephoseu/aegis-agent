@@ -76,10 +76,10 @@ You'll see interleaved output from both processes:
 ```
 [AGENT] Starting LangGraph API server...
 [AGENT] Ready on http://localhost:2024
-[CLIENT] VITE ready in Xms → http://localhost:5173
+[CLIENT] VITE ready in Xms → http://localhost:8080
 ```
 
-Open **http://localhost:5173**.
+Open **http://localhost:8080**.
 
 ---
 
