@@ -9,7 +9,7 @@ A streaming chat client that connects to a LangGraph agent backed by **Google Ve
 | Process | Command | URL |
 |---------|---------|-----|
 | `AGENT` | `cd agent && langgraph dev --port 2024` | http://localhost:2024 |
-| `CLIENT` | `npm run dev --prefix client` | http://localhost:5173 |
+| `CLIENT` | `npm run dev --prefix client` | http://localhost:8080 |
 
 `langgraph dev` is a **Python CLI** installed via `pip install langgraph-cli[inmem]`. It reads `agent/langgraph.json`, loads `agent.py:graph`, and serves the LangGraph HTTP streaming API on port 2024. The React client proxies `/api/*` → `localhost:2024` via Vite, so there are no CORS issues.
 
