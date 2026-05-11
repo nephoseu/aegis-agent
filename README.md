@@ -48,7 +48,8 @@ gcloud config set project YOUR_PROJECT_ID
 ### 2. Configure environment
 
 ```bash
-cp agent/.env.example agent/.env
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 Open `agent/.env` and set:
