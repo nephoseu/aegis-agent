@@ -100,15 +100,4 @@ Make sure the Vertex AI API is enabled in your GCP project and your account has 
 
 ---
 
-## Changing the model
-
-Edit `VERTEX_MODEL` in `agent/.env`:
-
-| Value | Notes |
-|-------|-------|
-| `gemini-2.0-flash-001` | Default — fast & cheap |
-| `gemini-2.0-pro-exp` | Highest capability |
-| `gemini-1.5-pro-002` | 2M token context |
-| `gemini-1.5-flash-002` | Ultra-low latency |
-
 `langgraph dev` hot-reloads on file save, so no restart needed.
