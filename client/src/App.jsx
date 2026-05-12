@@ -23,12 +23,16 @@ const SpinnerIcon = () => (
     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
   </svg>
 );
-const Cursor = () => (
-  <span style={{
-    display: 'inline-block', width: 2, height: '1em',
-    background: 'var(--agent)', marginLeft: 2, verticalAlign: 'text-bottom',
-    animation: 'blink 1s step-end infinite',
-  }}/>
+const TypingDots = () => (
+  <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center', marginLeft: 6, verticalAlign: 'middle' }}>
+    {[0, 1, 2].map(i => (
+      <span key={i} style={{
+        width: 4, height: 4, borderRadius: '50%', background: 'var(--agent)',
+        display: 'inline-block',
+        animation: `dotPulse 1.2s ease-in-out ${i * 0.18}s infinite`,
+      }} />
+    ))}
+  </span>
 );
 
 function Message({ msg }) {
@@ -61,7 +65,7 @@ function Message({ msg }) {
         boxShadow: isUser ? '0 4px 20px rgba(139,92,246,0.25)' : '0 2px 8px rgba(0,0,0,0.3)',
       }}>
         {msg.content}
-        {msg.streaming && <Cursor />}
+        {msg.streaming && <TypingDots />}
       </div>
     </div>
   );
@@ -176,7 +180,7 @@ export default function App() {
     <>
       <style>{`
         @keyframes slideUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes dotPulse { 0%,80%,100%{opacity:0.2;transform:scale(0.75)} 40%{opacity:1;transform:scale(1)} }
         @keyframes spin { to { transform:rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         .spinner { animation: spin 0.8s linear infinite; display:flex; }
@@ -201,7 +205,7 @@ export default function App() {
             padding:'14px 24px', borderBottom:'1px solid var(--border)',
             display:'flex', alignItems:'center', justifyContent:'space-between',
           }}>
-            <div style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.02em' }}>◈ AgentChat</div>
+            <div style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.02em' }}>◈ Aegis Agent</div>
             <div style={{ display:'flex', alignItems:'center', gap:16 }}>
               <StatusBadge status={status} />
               <div style={{
@@ -223,7 +227,7 @@ export default function App() {
                 }}>◈</div>
                 <div>
                   <div style={{ fontWeight:700, fontSize:18, marginBottom:6 }}>
-                    {activeThread ? 'Thread ready' : 'Agent Chat'}
+                    {activeThread ? 'Thread ready' : 'Aegis Agent'}
                   </div>
                   <div style={{ fontFamily:'var(--font-mono)', fontSize:12, color:'var(--text-dimmer)', lineHeight:1.7 }}>
                     {activeThread

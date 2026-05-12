@@ -38,6 +38,7 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
   const decoder = new TextDecoder();
   let buffer = '';
   let currentEvent = null;
+  let chunksReceived = false;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -48,10 +49,8 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
     buffer = lines.pop();
 
     for (const line of lines) {
-      // track the event type
       if (line.startsWith('event: ')) {
         currentEvent = line.slice(7).trim();
-        console.log('[SSE event]', currentEvent);
         continue;
       }
 
@@ -63,34 +62,27 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
         try {
           payload = JSON.parse(raw);
         } catch {
-          console.warn('[SSE] non-JSON line:', raw);
           continue;
         }
 
-        console.log('[SSE data]', currentEvent, payload);
-
-        // ── messages mode: [type, chunk] tuple ──────────────────────────────
+        // ── messages mode: incremental delta chunks ──────────────────────────
         if (Array.isArray(payload)) {
           const [, chunk] = payload;
           if (chunk?.content) {
-            // content can be a string or an array of parts
             const text = typeof chunk.content === 'string'
               ? chunk.content
               : chunk.content
                   .filter(p => p.type === 'text')
                   .map(p => p.text)
                   .join('');
-            if (text) onChunk?.(text);
+            if (text) { onChunk?.(text); chunksReceived = true; }
           }
           continue;
         }
 
-        // ── values mode: full state snapshot ────────────────────────────────
-        if (currentEvent === 'values' && payload?.messages) {
-          const msgs = payload.messages;
-          const last = msgs[msgs.length - 1];
-          // only use values snapshot if we got no streaming chunks
-          // (non-streaming models fall back to this)
+        // ── values mode: full snapshot, only used when model doesn't stream ──
+        if (!chunksReceived && currentEvent === 'values' && payload?.messages) {
+          const last = payload.messages[payload.messages.length - 1];
           if (last?.type === 'ai' && last?.content) {
             const text = typeof last.content === 'string'
               ? last.content
