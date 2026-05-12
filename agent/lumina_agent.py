@@ -35,6 +35,7 @@ llm = ChatGoogleGenerativeAI(
     location=REGION,
     credentials=creds,          # use ADC from gcloud auth application-default login
     temperature=1.0,
+    streaming=True,
 )
 
 # ======================================================================

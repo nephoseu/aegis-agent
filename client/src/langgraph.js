@@ -67,7 +67,7 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
 
         // ── messages mode: incremental delta chunks ──────────────────────────
         if (Array.isArray(payload)) {
-          const [, chunk] = payload;
+          const [chunk] = payload;
           if (chunk?.content) {
             const text = typeof chunk.content === 'string'
               ? chunk.content
