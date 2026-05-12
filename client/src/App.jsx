@@ -23,6 +23,25 @@ const SpinnerIcon = () => (
     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
   </svg>
 );
+const SunIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+);
+const MoonIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+);
+const ResetIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5.5"/>
+  </svg>
+);
+
 const TypingDots = () => (
   <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center', marginLeft: 6, verticalAlign: 'middle' }}>
     {[0, 1, 2].map(i => (
@@ -94,15 +113,43 @@ function StatusBadge({ status }) {
   );
 }
 
+const STORAGE_KEY = 'aegis-session';
+
+function loadSession() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { activeThread: null, messages: {} };
+    const { activeThread, messages } = JSON.parse(raw);
+    // clear any streaming flag that was live when the page was closed
+    const sanitized = {};
+    for (const [tid, msgs] of Object.entries(messages ?? {})) {
+      sanitized[tid] = msgs.map(m => m.streaming ? { ...m, streaming: false } : m);
+    }
+    return { activeThread: activeThread ?? null, messages: sanitized };
+  } catch {
+    return { activeThread: null, messages: {} };
+  }
+}
+
 export default function App() {
-  const [activeThread, setActiveThread] = useState(null);
-  const [messages, setMessages] = useState({});
+  const [theme, setTheme] = useState(() => localStorage.getItem('aegis-theme') || 'dark');
+  const [activeThread, setActiveThread] = useState(() => loadSession().activeThread);
+  const [messages, setMessages] = useState(() => loadSession().messages);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState('idle');
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
   const activeMessages = activeThread ? (messages[activeThread] || []) : [];
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('aegis-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeThread, messages }));
+  }, [activeThread, messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,6 +174,14 @@ export default function App() {
       updated[updated.length - 1] = updater(updated[updated.length - 1]);
       return { ...prev, [threadId]: updated };
     });
+  }, []);
+
+  const reset = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setActiveThread(null);
+    setMessages({});
+    setInput('');
+    setStatus('idle');
   }, []);
 
   const send = useCallback(async () => {
@@ -186,6 +241,9 @@ export default function App() {
         .spinner { animation: spin 0.8s linear infinite; display:flex; }
         .send-btn:hover:not(:disabled) { background: var(--accent-2) !important; transform: scale(1.05); }
         .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+        .reset-btn:hover:not(:disabled) { background: rgba(239,68,68,0.12) !important; color: var(--error) !important; border-color: rgba(239,68,68,0.3) !important; }
+        .reset-btn:disabled { opacity:0.35; cursor:not-allowed; }
+        .theme-btn:hover { background: var(--bg-4) !important; color: var(--text) !important; }
         textarea { resize:none; }
         textarea:focus { outline:none; }
         .input-wrap:focus-within { border-color: var(--border-active) !important; box-shadow: 0 0 0 3px var(--accent-glow) !important; }
@@ -206,7 +264,7 @@ export default function App() {
             display:'flex', alignItems:'center', justifyContent:'space-between',
           }}>
             <div style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.02em' }}>◈ Aegis Agent</div>
-            <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <StatusBadge status={status} />
               <div style={{
                 fontFamily:'var(--font-mono)', fontSize:11, color:'var(--text-dimmer)',
@@ -214,6 +272,33 @@ export default function App() {
               }}>
                 graph: agent
               </div>
+              <button
+                className="theme-btn"
+                onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                style={{
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  width:32, height:32, borderRadius:8, border:'1px solid var(--border)',
+                  background:'var(--bg-3)', color:'var(--text-dim)',
+                  cursor:'pointer', transition:'all 0.15s', flexShrink:0,
+                }}
+              >
+                {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+              </button>
+              <button
+                className="reset-btn"
+                onClick={reset}
+                disabled={status === 'streaming' || status === 'connecting' || (!activeThread && activeMessages.length === 0)}
+                title="Reset conversation"
+                style={{
+                  display:'flex', alignItems:'center', gap:6, padding:'5px 10px',
+                  background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8,
+                  color:'var(--error)', fontFamily:'var(--font-ui)', fontSize:11,
+                  fontWeight:600, cursor:'pointer', transition:'all 0.15s', letterSpacing:'0.03em',
+                }}
+              >
+                <ResetIcon /> Reset conversation
+              </button>
             </div>
           </header>
 

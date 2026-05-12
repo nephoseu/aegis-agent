@@ -24,6 +24,24 @@
   --font-mono: 'JetBrains Mono', monospace;
 }
 
+[data-theme="light"] {
+  --bg: #f5f5fa;
+  --bg-2: #eeeef6;
+  --bg-3: #e4e4ef;
+  --bg-4: #d8d8ea;
+  --border: rgba(0,0,0,0.09);
+  --border-active: rgba(109,40,217,0.4);
+  --text: #1a1a2e;
+  --text-dim: #5a5a78;
+  --text-dimmer: #9898b8;
+  --accent: #7c3aed;
+  --accent-2: #6d28d9;
+  --accent-glow: rgba(124,58,237,0.12);
+  --agent: #047857;
+  --agent-glow: rgba(4,120,87,0.1);
+  --error: #dc2626;
+}
+
 html, body, #root {
   height: 100%;
   background: var(--bg);
