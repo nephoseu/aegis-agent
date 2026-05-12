@@ -50,6 +50,7 @@ gcloud config set project YOUR_PROJECT_ID
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+pip install langgraph-cli[inmem]
 ```
 
 Open `agent/.env` and set:
