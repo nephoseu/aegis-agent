@@ -210,8 +210,8 @@ export default function App() {
 
     await streamRun({
       threadId, message: text,
-      onChunk: (chunk) => {
-        updateLastMessage(threadId, msg => ({ ...msg, content: msg.content + chunk }));
+      onText: (fullText) => {
+        updateLastMessage(threadId, msg => ({ ...msg, content: fullText }));
       },
       onDone: () => {
         updateLastMessage(threadId, msg => ({ ...msg, streaming: false }));

@@ -17,7 +17,7 @@ export async function createThread() {
   return data.thread_id;
 }
 
-export async function streamRun({ threadId, message, onChunk, onDone, onError }) {
+export async function streamRun({ threadId, message, onText, onDone, onError }) {
   const res = await fetch(`${BASE}/threads/${threadId}/runs/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +38,18 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
   const decoder = new TextDecoder();
   let buffer = '';
   let currentEvent = null;
-  let chunksReceived = false;
+
+  // Accumulate the full response text here; always send the whole string so
+  // the caller can replace (not append) — this prevents any double-send from
+  // values events or cumulative chunks arriving out of order.
+  let accumulated = '';
+  let usedValuesSnapshot = false;
+
+  const extractText = (content) => {
+    if (!content) return '';
+    if (typeof content === 'string') return content;
+    return content.filter(p => p.type === 'text').map(p => p.text).join('');
+  };
 
   while (true) {
     const { done, value } = await reader.read();
@@ -54,43 +65,40 @@ export async function streamRun({ threadId, message, onChunk, onDone, onError })
         continue;
       }
 
-      if (line.startsWith('data: ')) {
-        const raw = line.slice(6).trim();
-        if (!raw || raw === '[DONE]') continue;
+      if (!line.startsWith('data: ')) continue;
 
-        let payload;
-        try {
-          payload = JSON.parse(raw);
-        } catch {
-          continue;
-        }
+      const raw = line.slice(6).trim();
+      if (!raw || raw === '[DONE]') continue;
 
-        // ── messages mode: incremental delta chunks ──────────────────────────
-        if (Array.isArray(payload)) {
-          const [chunk] = payload;
-          if (chunk?.content) {
-            const text = typeof chunk.content === 'string'
-              ? chunk.content
-              : chunk.content
-                  .filter(p => p.type === 'text')
-                  .map(p => p.text)
-                  .join('');
-            if (text) { onChunk?.(text); chunksReceived = true; }
+      let payload;
+      try { payload = JSON.parse(raw); } catch { continue; }
+
+      // ── messages mode: [AIMessageChunk, metadata] ────────────────────────
+      if (currentEvent === 'messages' && Array.isArray(payload)) {
+        const [chunk] = payload;
+        // Only process actual AI message chunks, not human/tool messages
+        if (chunk?.type === 'AIMessageChunk') {
+          const delta = extractText(chunk.content);
+          if (delta) {
+            accumulated += delta;
+            usedValuesSnapshot = false;
+            onText?.(accumulated);
           }
-          continue;
         }
+        continue;
+      }
 
-        // ── values mode: full snapshot, only used when model doesn't stream ──
-        if (!chunksReceived && currentEvent === 'values' && payload?.messages) {
-          const last = payload.messages[payload.messages.length - 1];
-          if (last?.type === 'ai' && last?.content) {
-            const text = typeof last.content === 'string'
-              ? last.content
-              : last.content
-                  .filter(p => p.type === 'text')
-                  .map(p => p.text)
-                  .join('');
-            if (text) onChunk?.(text);
+      // ── values mode: full state snapshot ─────────────────────────────────
+      // Only use this if messages mode produced nothing (non-streaming models).
+      // If messages chunks already built up content, skip to avoid duplication.
+      if (currentEvent === 'values' && payload?.messages && accumulated === '') {
+        const last = payload.messages[payload.messages.length - 1];
+        if (last?.type === 'ai') {
+          const text = extractText(last.content);
+          if (text && text !== accumulated) {
+            accumulated = text;
+            usedValuesSnapshot = true;
+            onText?.(accumulated);
           }
         }
       }
