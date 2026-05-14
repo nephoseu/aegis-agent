@@ -28,7 +28,7 @@ googleapis-common-protos==1.74.0
 grpc-google-iam-v1==0.14.4
 grpcio==1.78.0
 grpcio-health-checking==1.78.0
-grpcio-status==1.80.0
+grpcio-status==1.78.0
 grpcio-tools==1.78.0
 h11==0.16.0
 httpcore==1.0.9
@@ -102,7 +102,7 @@ tenacity==9.1.4
 truststore==0.10.4
 typing-inspection==0.4.2
 typing_extensions==4.15.0
-urllib3==2.6.3
+urllib3==1.26.20
 uuid_utils==0.14.1
 uvicorn==0.46.0
 uvloop==0.22.1
@@ -110,7 +110,8 @@ validators==0.35.0
 vcrpy==8.1.1
 watchfiles==1.1.1
 websockets==16.0
-wrapt==2.1.2
+wrapt==1.17.2
 xxhash==3.7.0
 zipp==3.23.1
 zstandard==0.25.0
+langgraph-cli[inmem]

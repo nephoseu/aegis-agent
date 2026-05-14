@@ -1,0 +1,15 @@
+{
+  "name": "agent-chat",
+  "version": "1.0.0",
+  "description": "LangGraph Agent + React Chat Client (Vertex AI)",
+  "scripts": {
+    "dev": "concurrently --names \"AGENT,CLIENT\" --prefix-colors \"cyan,magenta\" \"npm run agent\" \"npm run client\"",
+    "agent": "cd agent && langgraph dev --port 2024",
+    "client": "npm run dev --prefix client -- --host --port 8080",
+    "install:all": "pip install -r agent/requirements.txt && npm install --prefix client",
+    "setup": "npm install && npm run install:all"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
