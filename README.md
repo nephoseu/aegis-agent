@@ -24,7 +24,7 @@ agent-chat/
 │   ├── agent.py          ← LangGraph graph, calls Vertex AI
 │   ├── langgraph.json    ← tells langgraph dev which graph to serve
 │   ├── requirements.txt  ← Python deps (langgraph-cli, langchain-google-vertexai)
-│   └── .env              ← This is what you should create, copy to .env, fill in GCP project
+│   └── .env              ← This is what you should create, copy information below to .env, fill in GCP project
 └── client/
     ├── vite.config.js    ← /api/* proxied to localhost:2024
     └── src/
@@ -53,7 +53,7 @@ source .venv/bin/activate
 pip install langgraph-cli[inmem]
 ```
 
-Open `agent/.env` and set:
+Create `agent/.env` and set:
 ```env
 GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 GOOGLE_CLOUD_LOCATION=us-central1
