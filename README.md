@@ -24,7 +24,7 @@ agent-chat/
 │   ├── agent.py          ← LangGraph graph, calls Vertex AI
 │   ├── langgraph.json    ← tells langgraph dev which graph to serve
 │   ├── requirements.txt  ← Python deps (langgraph-cli, langchain-google-vertexai)
-│   └── .env.example      ← copy to .env, fill in GCP project
+│   └── .env              ← This is what you should create, copy to .env, fill in GCP project
 └── client/
     ├── vite.config.js    ← /api/* proxied to localhost:2024
     └── src/
